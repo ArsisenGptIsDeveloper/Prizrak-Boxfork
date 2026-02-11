@@ -178,6 +178,7 @@ profiles:
   home: 访问订阅主页
   support: 访问支持页面
   del-tip: 正在使用中，不可删除
+  keep-one-tip: 至少保留一个启用中的订阅
   edit:
     title: 标题
     url: 地址
@@ -238,6 +239,13 @@ rule:
     title: 忽略这些域名
     tip: 按行分割
     place: 在这里输入
+  process:
+    title: 应用直连（绕过 VPN）
+    placeholder: 进程名（例如 chrome.exe）
+    warningTunOnly: 此功能仅在 TUN 模式下生效
+    validation:
+      empty: 进程名不能为空
+      duplicate: 该进程已在列表中
 
 connections:
   title: 连接
@@ -295,4 +303,3 @@ errors:
   request-create-failed: 创建请求失败
   response-empty: 响应内容为空
   unknown-reason: 原因未知
-

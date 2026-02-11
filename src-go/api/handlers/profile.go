@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"github.com/legiz-ru/prizrak-box/api/job"
 	"github.com/legiz-ru/prizrak-box/pkg/proxy"
 	"net/http"
@@ -10,13 +11,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/metacubex/mihomo/hub/route"
-	"github.com/metacubex/mihomo/log"
 	"github.com/legiz-ru/prizrak-box/api/models"
 	"github.com/legiz-ru/prizrak-box/internal"
 	"github.com/legiz-ru/prizrak-box/pkg/cache"
 	"github.com/legiz-ru/prizrak-box/pkg/constant"
 	"github.com/legiz-ru/prizrak-box/pkg/utils"
+	"github.com/metacubex/mihomo/hub/route"
+	"github.com/metacubex/mihomo/log"
 )
 
 func Profile(r chi.Router) {
@@ -259,7 +260,7 @@ func deleteProfile(w http.ResponseWriter, r *http.Request) {
 	render.NoContent(w, r)
 }
 
-// 切换配置
+// 切换配置（支持多配置并行启用）
 func switchProfile(w http.ResponseWriter, r *http.Request) {
 	var profile models.Profile
 	if err := render.DecodeJSON(r.Body, &profile); err != nil {
@@ -267,18 +268,30 @@ func switchProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var profiles []models.Profile
-	_ = cache.GetList(constant.PrefixProfile, &profiles)
-	for _, p := range profiles {
-		if p.Selected {
-			p.Selected = false
-			_ = cache.Put(p.Id, p)
-		} else {
-			continue
+	var dbProfile models.Profile
+	_ = cache.Get(profile.Id, &dbProfile)
+	if dbProfile.Id == "" {
+		ErrorResponse(w, r, errors.New("profile not found"))
+		return
+	}
+
+	if !profile.Selected && dbProfile.Selected {
+		var profiles []models.Profile
+		_ = cache.GetList(constant.PrefixProfile, &profiles)
+		selectedCount := 0
+		for _, p := range profiles {
+			if p.Selected {
+				selectedCount++
+			}
+		}
+		if selectedCount <= 1 {
+			ErrorResponse(w, r, errors.New("at least one profile must remain selected"))
+			return
 		}
 	}
-	profile.Selected = true
-	_ = cache.Put(profile.Id, profile)
+
+	dbProfile.Selected = profile.Selected
+	_ = cache.Put(dbProfile.Id, dbProfile)
 
 	internal.SwitchProfile(true)
 

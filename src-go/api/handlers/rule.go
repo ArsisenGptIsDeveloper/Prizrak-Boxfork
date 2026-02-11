@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -37,6 +38,8 @@ func ruleRouter() chi.Router {
 	// 校验测试
 	r.Post("/test", testTemplate)
 	r.Post("/switch", switchTemplate)
+	r.Get("/process-bypass", getProcessBypass)
+	r.Put("/process-bypass", updateProcessBypass)
 
 	// 规则总数
 	r.Get("/num", getNum)
@@ -252,4 +255,45 @@ func getNum(w http.ResponseWriter, r *http.Request) {
 	}{num}
 
 	render.JSON(w, r, res)
+}
+
+func getProcessBypass(w http.ResponseWriter, r *http.Request) {
+	var bypass models.ProcessBypass
+	_ = cache.Get(constant.ProcessBypass, &bypass)
+
+	bypass.Processes = normalizeProcessNames(bypass.Processes)
+	render.JSON(w, r, bypass)
+}
+
+func updateProcessBypass(w http.ResponseWriter, r *http.Request) {
+	var bypass models.ProcessBypass
+	if err := render.DecodeJSON(r.Body, &bypass); err != nil {
+		ErrorResponse(w, r, err)
+		return
+	}
+
+	bypass.Processes = normalizeProcessNames(bypass.Processes)
+	_ = cache.Put(constant.ProcessBypass, bypass)
+
+	render.NoContent(w, r)
+}
+
+func normalizeProcessNames(processes []string) []string {
+	res := make([]string, 0, len(processes))
+	seen := make(map[string]struct{})
+
+	for _, item := range processes {
+		name := strings.TrimSpace(item)
+		if name == "" {
+			continue
+		}
+		key := strings.ToLower(name)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		res = append(res, name)
+	}
+
+	return res
 }

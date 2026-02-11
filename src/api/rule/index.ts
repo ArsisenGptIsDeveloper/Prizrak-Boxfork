@@ -66,6 +66,16 @@ const switchTemplate = (proxy: any) =>
         return await proxy.$http.post(`/rule/switch`, data);
     };
 
+const getProcessBypass = (proxy: any) =>
+    async function (): Promise<{ enable: boolean, processes: string[] }> {
+        return await proxy.$http.get('/rule/process-bypass');
+    };
+
+const updateProcessBypass = (proxy: any) =>
+    async function (data: { enable: boolean, processes: string[] }) {
+        return await proxy.$http.put('/rule/process-bypass', data);
+    };
+
 export default function createRuleApi(proxy: any) {
     return {
         getRules: getRules(proxy),
@@ -79,5 +89,7 @@ export default function createRuleApi(proxy: any) {
         createTemplate: createTemplate(proxy),
         testTemplate: testTemplate(proxy),
         switchTemplate: switchTemplate(proxy),
+        getProcessBypass: getProcessBypass(proxy),
+        updateProcessBypass: updateProcessBypass(proxy),
     };
 }

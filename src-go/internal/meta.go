@@ -88,13 +88,18 @@ var havaStartCore bool
 var StartLock = sync.Mutex{}
 
 // startCore 函数用于启动核心功能
-func startCore(profile models.Profile, reload bool) {
+func startCore(profiles []models.Profile, reload bool) {
+	if len(profiles) == 0 {
+		return
+	}
+
+	primary := profiles[0]
 
 	// 获取规则分组
-	useTemplate, templateId, templateBuf := getTemplate(profile)
+	useTemplate, templateId, templateBuf := getTemplate(primary)
 
 	// 获取配置文件
-	providerBuf, err := os.ReadFile(utils.GetUserHomeDir(profile.Path))
+	providerBuf, err := os.ReadFile(utils.GetUserHomeDir(primary.Path))
 	if err != nil {
 		log.Warnln("Read config error: %s", err.Error())
 		return
@@ -106,6 +111,8 @@ func startCore(profile models.Profile, reload bool) {
 		log.Warnln("Unmarshal config error: %s", err.Error())
 		return
 	}
+
+	mergeRawConfigProfiles(rawCfg, profiles[1:])
 
 	// 统一规则模板
 	if useTemplate || len(rawCfg.Rule) == 0 {
@@ -172,6 +179,8 @@ func startCore(profile models.Profile, reload bool) {
 	rawCfg.Tun.Stack = C.StackTypeMapping[strings.ToLower(mi.Stack)]
 	rawCfg.IPv6 = mi.Ipv6
 
+	applyProcessBypassRules(rawCfg, mi.Tun)
+
 	// 保存规则数
 	_ = cache.Put("Rule_No", len(rawCfg.Rule))
 
@@ -224,6 +233,93 @@ func startCore(profile models.Profile, reload bool) {
 	havaStartCore = true
 }
 
+func mergeRawConfigProfiles(rawCfg *config.RawConfig, profiles []models.Profile) {
+	if rawCfg == nil || len(profiles) == 0 {
+		return
+	}
+
+	for _, profile := range profiles {
+		providerBuf, err := os.ReadFile(utils.GetUserHomeDir(profile.Path))
+		if err != nil {
+			log.Warnln("Read profile config error: %s", err.Error())
+			continue
+		}
+
+		otherCfg, err := config.UnmarshalRawConfig(providerBuf)
+		if err != nil {
+			log.Warnln("Unmarshal profile config error: %s", err.Error())
+			continue
+		}
+
+		if len(otherCfg.ProxyProvider) > 0 {
+			if rawCfg.ProxyProvider == nil {
+				rawCfg.ProxyProvider = map[string]map[string]any{}
+			}
+			for key, value := range otherCfg.ProxyProvider {
+				mergedKey := key
+				if _, exists := rawCfg.ProxyProvider[mergedKey]; exists {
+					mergedKey = fmt.Sprintf("%s_%s", profile.Id, key)
+				}
+				rawCfg.ProxyProvider[mergedKey] = value
+			}
+		}
+
+		if len(otherCfg.Proxy) > 0 {
+			rawCfg.Proxy = append(rawCfg.Proxy, otherCfg.Proxy...)
+		}
+
+		if len(otherCfg.Rule) > 0 {
+			rawCfg.Rule = append(rawCfg.Rule, otherCfg.Rule...)
+		}
+	}
+}
+
+func applyProcessBypassRules(rawCfg *config.RawConfig, tunEnabled bool) {
+	if rawCfg == nil {
+		return
+	}
+
+	var bypass models.ProcessBypass
+	_ = cache.Get(constant.ProcessBypass, &bypass)
+
+	if !tunEnabled || !bypass.Enable || len(bypass.Processes) == 0 {
+		return
+	}
+
+	processRules := make([]string, 0, len(bypass.Processes))
+	for _, item := range bypass.Processes {
+		name := strings.TrimSpace(item)
+		if name == "" {
+			continue
+		}
+		processRules = append(processRules, fmt.Sprintf("PROCESS-NAME,%s,DIRECT", name))
+	}
+
+	if len(processRules) == 0 {
+		return
+	}
+
+	matchIndex := -1
+	for i, rule := range rawCfg.Rule {
+		normalized := strings.ToUpper(strings.TrimSpace(rule))
+		if strings.HasPrefix(normalized, "MATCH,") {
+			matchIndex = i
+			break
+		}
+	}
+
+	if matchIndex == -1 {
+		rawCfg.Rule = append(rawCfg.Rule, processRules...)
+		return
+	}
+
+	result := make([]string, 0, len(rawCfg.Rule)+len(processRules))
+	result = append(result, rawCfg.Rule[:matchIndex]...)
+	result = append(result, processRules...)
+	result = append(result, rawCfg.Rule[matchIndex:]...)
+	rawCfg.Rule = result
+}
+
 // 获取统一规则分组模板
 func getTemplate(profile models.Profile) (bool, string, []byte) {
 	// 默认模版ID
@@ -269,9 +365,6 @@ func SwitchProfile(reload bool) {
 	StartLock.Lock()
 	defer StartLock.Unlock()
 
-	// 应用配置
-	var profile models.Profile
-
 	// 获取切换配置
 	var profiles []models.Profile
 	_ = cache.GetList(constant.PrefixProfile, &profiles)
@@ -280,23 +373,22 @@ func SwitchProfile(reload bool) {
 		return
 	}
 
-	haveSelected := false
+	selectedProfiles := make([]models.Profile, 0)
 	for _, p := range profiles {
 		if p.Selected {
-			profile = p
-			haveSelected = true
+			selectedProfiles = append(selectedProfiles, p)
 		}
 	}
 
-	if !haveSelected {
-		profile = profiles[0]
-		profile.Selected = true
-		_ = cache.Put(profile.Id, profile)
+	if len(selectedProfiles) == 0 {
+		profiles[0].Selected = true
+		_ = cache.Put(profiles[0].Id, profiles[0])
+		selectedProfiles = append(selectedProfiles, profiles[0])
 	}
 
 	if !havaStartCore {
 		reload = false
 	}
 
-	startCore(profile, reload)
+	startCore(selectedProfiles, reload)
 }
