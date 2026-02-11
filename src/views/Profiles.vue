@@ -160,25 +160,27 @@ function mouseLeave() {
   canDrag.value = false
 }
 
-// 切换订阅配置
+// 切换订阅配置（支持多选并行）
 async function switchProfile(data: any) {
-  if (data['selected']) {
+  const nextSelected = !data['selected']
+  const selectedNum = profiles.filter((profile) => profile['selected']).length
+
+  if (!nextSelected && selectedNum <= 1) {
+    pWarning(t('profiles.keep-one-tip'))
     return
   }
 
   await pLoad(t('profiles.switch.ing'), async () => {
     try {
-      await api.switchProfile(data)
+      await api.switchProfile({
+        ...data,
+        selected: nextSelected,
+      })
       proxiesStore.active = ""
 
       await api.waitRunning()
 
-      for (let profile of profiles) {
-        if (profile['selected']) {
-          profile['selected'] = false
-        }
-      }
-      data['selected'] = true
+      data['selected'] = nextSelected
 
       api.getRuleNum().then((res) => {
         menuStore.setRuleNum(res);

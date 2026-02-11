@@ -75,6 +75,7 @@ onMounted(async () => {
   const res = await api.getMihomo()
   menuStore.setRule(res.mode)
   menuStore.setProxy(res.proxy)
+  menuStore.setTun(res.tun)
 
   settingStore.setPort(res.port)
   settingStore.setBindAddress(res.bindAddress)

@@ -22,6 +22,7 @@ const (
 	QuitSignal             = "QuitSignal"
 	Dns                    = "DNS"
 	Mihomo                 = "Mihomo"
+	ProcessBypass          = "ProcessBypass"
 	TemplateBuiltinVersion = "TemplateBuiltinVersion"
 )
 

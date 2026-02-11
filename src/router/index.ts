@@ -8,6 +8,7 @@ import Rule from '@/views/Rule.vue';
 import Now from '@/views/rule/Now.vue';
 import Group from '@/views/rule/Group.vue';
 import Ignore from '@/views/rule/Ignore.vue';
+import Process from '@/views/rule/Process.vue';
 import Connection from '@/views/Connection.vue';
 import Log from '@/views/Log.vue';
 import Crawl from '@/views/Crawl.vue';
@@ -63,6 +64,11 @@ const routes: Array<RouteRecordRaw> = [
                 path: 'Ignore',
                 name: 'Ignore',
                 component: Ignore,
+            },
+            {
+                path: 'Process',
+                name: 'Process',
+                component: Process,
             },
         ],
     },
