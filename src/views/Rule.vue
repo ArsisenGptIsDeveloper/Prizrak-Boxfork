@@ -52,6 +52,15 @@ const setActive = function (value: string) {
             {{ $t('rule.ignore.title') }}
           </span>
         </button>
+        <button
+            :class="getActive('Process')"
+            @click="setActive('Process')"
+        >
+          <icon-mdi-application-cog class="pre"/>
+          <span class="suf">
+            {{ $t('rule.process.title') }}
+          </span>
+        </button>
       </div>
     </template>
     <template #bottom>
