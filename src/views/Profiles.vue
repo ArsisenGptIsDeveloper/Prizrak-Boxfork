@@ -206,16 +206,16 @@ async function switchProfile(data: any) {
 
 
 watch(() => webStore.fProfile, async (data: any) => {
-  for (let profile of profiles) {
-    if (profile['selected']) {
-      profile['selected'] = false
-    }
-    if (profile['id'] == data['id']) {
-      data = profile
-    }
+  if (!data || !data['id']) {
+    return
   }
 
-  data['selected'] = true
+  for (let profile of profiles) {
+    if (profile['id'] == data['id']) {
+      profile['selected'] = true
+      break
+    }
+  }
 })
 
 
