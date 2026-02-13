@@ -113,7 +113,6 @@ func startCore(profiles []models.Profile, reload bool) {
 	}
 
 	mergeRawConfigProfiles(rawCfg, profiles[1:])
-	mergedRules := append([]string{}, rawCfg.Rule...)
 
 	// 统一规则模板
 	if useTemplate || len(rawCfg.Rule) == 0 {
@@ -274,31 +273,6 @@ func mergeRawConfigProfiles(rawCfg *config.RawConfig, profiles []models.Profile)
 			rawCfg.Rule = append(rawCfg.Rule, otherCfg.Rule...)
 		}
 	}
-}
-
-func mergeRulesBeforeMatch(baseRules []string, extraRules []string) []string {
-	if len(extraRules) == 0 {
-		return baseRules
-	}
-
-	matchIndex := -1
-	for i, rule := range baseRules {
-		normalized := strings.ToUpper(strings.TrimSpace(rule))
-		if strings.HasPrefix(normalized, "MATCH,") {
-			matchIndex = i
-			break
-		}
-	}
-
-	if matchIndex == -1 {
-		return append(baseRules, extraRules...)
-	}
-
-	result := make([]string, 0, len(baseRules)+len(extraRules))
-	result = append(result, baseRules[:matchIndex]...)
-	result = append(result, extraRules...)
-	result = append(result, baseRules[matchIndex:]...)
-	return result
 }
 
 func applyProcessBypassRules(rawCfg *config.RawConfig, tunEnabled bool) {

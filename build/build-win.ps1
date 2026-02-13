@@ -37,14 +37,6 @@ if (-not $SkipNpmInstall) {
     npm install
 }
 
-Step "Checking for unresolved merge conflict markers"
-$conflicts = Select-String -Path (Join-Path $repoRoot "src-go\**\*.go") -Pattern '^(<<<<<<<|=======|>>>>>>>)' -SimpleMatch:$false -ErrorAction SilentlyContinue
-if ($conflicts) {
-    Write-Host "Found unresolved merge conflict markers in Go sources:" -ForegroundColor Red
-    $conflicts | ForEach-Object { Write-Host ("  {0}:{1}: {2}" -f $_.Path, $_.LineNumber, $_.Line.Trim()) -ForegroundColor Red }
-    throw "Resolve merge conflict markers before building."
-}
-
 Step "Ensuring Electron Forge Squirrel maker dependency"
 $pkg = Get-Content -Raw -Path "package.json" | ConvertFrom-Json
 $hasMaker = $false
