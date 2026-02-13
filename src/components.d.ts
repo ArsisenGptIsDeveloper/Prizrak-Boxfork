@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     DeepLinkImportOverlay: typeof import('./components/DeepLinkImportOverlay.vue')['default']
+    ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCol: typeof import('element-plus/es')['ElCol']
     ElDialog: typeof import('element-plus/es')['ElDialog']
@@ -34,6 +35,7 @@ declare module 'vue' {
     IconEpCloseBold: typeof import('~icons/ep/close-bold')['default']
     IconEpSearch: typeof import('~icons/ep/search')['default']
     IconEpSelect: typeof import('~icons/ep/select')['default']
+    IconMdiApplicationCog: typeof import('~icons/mdi/application-cog')['default']
     IconMdiArrangeBringForward: typeof import('~icons/mdi/arrange-bring-forward')['default']
     IconMdiArrangeSendBackward: typeof import('~icons/mdi/arrange-send-backward')['default']
     IconMdiArrowExpandHorizontal: typeof import('~icons/mdi/arrow-expand-horizontal')['default']

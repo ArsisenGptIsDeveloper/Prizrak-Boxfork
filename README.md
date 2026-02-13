@@ -71,6 +71,7 @@ npm run start
 - 🇨🇳 [查看中文文档](doc/README.zh-CN.md)
 - 🇺🇸 [View English Documentation](doc/README.en.md)
 - 🇷🇺 [Просмотр русской документации](doc/README.ru.md)
+- 🪟 [Сборка Windows .exe (RU)](doc/BUILD-WIN.ru.md)
 
 ---
 

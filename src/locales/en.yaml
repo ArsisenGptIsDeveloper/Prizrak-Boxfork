@@ -178,6 +178,7 @@ profiles:
   home: Visit the Subscription Home Page
   support: Visit the Support Page
   del-tip: In use, cannot be deleted
+  keep-one-tip: At least one active profile must remain
   edit:
     title: Title
     url: URL
@@ -238,6 +239,13 @@ rule:
     title: Ignore these domains
     tip: Split by row
     place: Type Here
+  process:
+    title: Apps bypass VPN
+    placeholder: Process name (e.g. chrome.exe)
+    warningTunOnly: This feature works only in TUN mode
+    validation:
+      empty: Process name cannot be empty
+      duplicate: This process is already in the list
 
 connections:
   title: Connections
@@ -295,4 +303,3 @@ errors:
   request-create-failed: Failed to create request
   response-empty: Response body is empty
   unknown-reason: Unknown reason
-

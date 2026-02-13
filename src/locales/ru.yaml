@@ -178,6 +178,7 @@ profiles:
   home: Перейти на страницу подписки
   support: Перейти на страницу поддержки
   del-tip: Используется, нельзя удалить
+  keep-one-tip: Должна остаться хотя бы одна активная подписка
   edit:
     title: Название
     url: URL
@@ -238,6 +239,13 @@ rule:
     title: Игнорируемые домены
     tip: Разделяйте по строкам
     place: Введите здесь
+  process:
+    title: Приложения мимо VPN
+    placeholder: Имя процесса (например, chrome.exe)
+    warningTunOnly: Функция работает только в TUN-режиме
+    validation:
+      empty: Имя процесса не может быть пустым
+      duplicate: Такой процесс уже добавлен
 
 connections:
   title: Соединения
@@ -295,4 +303,3 @@ errors:
   request-create-failed: Не удалось создать запрос
   response-empty: Пустой ответ сервера
   unknown-reason: Неизвестная причина
-
