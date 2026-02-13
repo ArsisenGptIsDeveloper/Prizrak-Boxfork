@@ -113,10 +113,6 @@ func startCore(profiles []models.Profile, reload bool) {
 	}
 
 	mergeRawConfigProfiles(rawCfg, profiles[1:])
-<<<<<<< codex/analyze-repo-for-split-tunneling-feature-fk0o6b
-	mergedRules := append([]string{}, rawCfg.Rule...)
-=======
->>>>>>> v3
 
 	// 统一规则模板
 	if useTemplate || len(rawCfg.Rule) == 0 {
@@ -279,34 +275,6 @@ func mergeRawConfigProfiles(rawCfg *config.RawConfig, profiles []models.Profile)
 	}
 }
 
-<<<<<<< codex/analyze-repo-for-split-tunneling-feature-fk0o6b
-func mergeRulesBeforeMatch(baseRules []string, extraRules []string) []string {
-	if len(extraRules) == 0 {
-		return baseRules
-	}
-
-	matchIndex := -1
-	for i, rule := range baseRules {
-		normalized := strings.ToUpper(strings.TrimSpace(rule))
-		if strings.HasPrefix(normalized, "MATCH,") {
-			matchIndex = i
-			break
-		}
-	}
-
-	if matchIndex == -1 {
-		return append(baseRules, extraRules...)
-	}
-
-	result := make([]string, 0, len(baseRules)+len(extraRules))
-	result = append(result, baseRules[:matchIndex]...)
-	result = append(result, extraRules...)
-	result = append(result, baseRules[matchIndex:]...)
-	return result
-}
-
-=======
->>>>>>> v3
 func applyProcessBypassRules(rawCfg *config.RawConfig, tunEnabled bool) {
 	if rawCfg == nil {
 		return
